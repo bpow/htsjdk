@@ -23,7 +23,7 @@
   ~ THE SOFTWARE.
   -->
 
-<project name="htsjdk" basedir="." default="all">
+<project name="htsjdk" basedir="." default="all" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
     <property name="src" value="src/java"/>
     <property name="src.test" value="src/tests"/>
@@ -37,6 +37,8 @@
 
     <property name="javac.target" value="1.6"/>
     <property name="javac.debug" value="true"/>
+    <property name="deploy.url" value="https://api.bintray.com/maven/bpow/picard-testing/picard"/>
+    <property name="deploy.id" value="bintray-bpow-picard-testing-picard"/>
 
     <!-- Get GIT hash, if available, otherwise leave it blank.  -->
     <exec executable="git" outputproperty="repository.revision" failifexecutionfails="true" errorproperty="">
@@ -208,8 +210,61 @@
                     <include name="**/*.jar" />
                 </fileset>
             </classpath>
-            <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+            <link href="http://docs.oracle.com/javase/6/docs/api/"/>
         </javadoc>
+		<mkdir dir="${dist}" />
+        <jar destfile="${dist}${file.separator}htsjdk-${htsjdk-version}-javadoc.jar">
+            <fileset dir="javadoc" />
+            <manifest>
+                <attribute name="Source" value="http://picard.sf.net" />
+                <attribute name="Release-Version" value="${htsjdk-version}" />
+                <attribute name="Implementation-Title" value="htsjdk"/>
+                <attribute name="Implementation-Version" value="${htsjdk-version}(${repository.revision})"/>
+                <attribute name="Implementation-Vendor" value="Broad Institute"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- tasks related to maven deployment -->
+    <property name="maven.ant.tasks.jar" value="${lib}${file.separator}ant${file.separator}maven-ant-tasks-2.1.3.jar"/>
+    <property name="maven.ant.tasks.bootstrap.location" value="http://mirrors.ibiblio.org/apache/maven/ant-tasks/2.1.3/binaries/maven-ant-tasks-2.1.3.jar"/>
+    <available property="maven.ant.tasks.jar.exists" file="${maven.ant.tasks.jar}"/>
+
+    <target name="bootstrap.maven.tasks" unless="maven.ant.tasks.jar.exists">
+        <mkdir dir="${lib}${file.separator}ant"/>
+        <get src="${maven.ant.tasks.bootstrap.location}" dest="${maven.ant.tasks.jar}"/>
+    </target>
+
+    <target name="init.maven.tasks" depends="bootstrap.maven.tasks">
+        <path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
+        <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="maven.ant.tasks.classpath" />
+    </target>
+
+    <target name="sources-jar" description="create sources.jar to associate with maven artifact">
+        <mkdir dir="${dist}" />
+        <jar basedir="${src}" destfile="${dist}${file.separator}htsjdk-${htsjdk-version}-sources.jar">
+            <manifest>
+                <attribute name="Source" value="http://picard.sf.net" />
+                <attribute name="Release-Version" value="${htsjdk-version}" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="deploy" depends="init.maven.tasks, htsjdk-jar, javadoc, sources-jar" description="Deploy to bintray">
+        <mkdir dir="${dist}" />
+        <artifact:pom name="HTSJDK: an api for high-throughput sequencing data formats" id="htsjdk-pom" groupId="net.sf.picard" artifactId="htsjdk" version="${htsjdk-version}" packaging="jar">
+            <license name="MIT license" url="http://www.opensource.org/licenses/mit-license.php" distribution="repo" />
+            <scm url="https://github.com/samtools/htsjdk" connection="scm:git:git://github.com/samtools/htsjdk.git" developerConnection="scm:git:git@github.com:samtools/htsjdk.git" />
+			<dependency groupId="org.xerial.snappy" artifactId="snappy-java" version="1.0.3-rc3" />
+            <developer id="" name="" email="" />
+        </artifact:pom>
+        <artifact:writepom pomRefId="htsjdk-pom" file="${dist}${file.separator}htsjdk-${htsjdk-version}.pom" />
+        <artifact:deploy file="${dist}/htsjdk-${htsjdk-version}.jar">
+            <remoteRepository url="${deploy.url}" id="${deploy.id}"/>
+            <pom file="${dist}${file.separator}htsjdk-${htsjdk-version}.pom"/>
+            <attach file="${dist}/htsjdk-${htsjdk-version}-sources.jar" type="jar" classifier="sources"/>
+            <attach file="${dist}/htsjdk-${htsjdk-version}-javadoc.jar" type="jar" classifier="javadoc"/>
+        </artifact:deploy>
     </target>
 
     <!-- ALL -->
