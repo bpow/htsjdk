@@ -21,7 +21,8 @@ import java.net.URL;
  * @author mccowan
  */
 public class SamInputResource {
-    private final InputResource source, index;
+    private final InputResource source;
+    private InputResource index;
 
     SamInputResource(final InputResource data) {
         this(data, null);
@@ -40,6 +41,7 @@ public class SamInputResource {
 
     /**
      * The resource that is the SAM index
+     *
      * @return null, if no index is defined for this resource
      */
     InputResource indexMaybe() {
@@ -51,23 +53,41 @@ public class SamInputResource {
         return String.format("data=%s;index=%s", source, index);
     }
 
+    /** Creates a {@link SamInputResource} reading from the provided resource, with no index. */
     public static SamInputResource of(final File file) { return new SamInputResource(new FileInputResource(file)); }
 
+    /** Creates a {@link SamInputResource} reading from the provided resource, with no index. */
     public static SamInputResource of(final InputStream inputStream) { return new SamInputResource(new InputStreamInputResource(inputStream)); }
 
+    /** Creates a {@link SamInputResource} reading from the provided resource, with no index. */
     public static SamInputResource of(final URL url) { return new SamInputResource(new UrlInputResource(url)); }
 
+    /** Creates a {@link SamInputResource} reading from the provided resource, with no index. */
     public static SamInputResource of(final SeekableStream seekableStream) { return new SamInputResource(new SeekableStreamInputResource(seekableStream)); }
 
-    // TODO: Incorporate on-demand index location where appropriate, instead of doing it at construction time?
+    /** Updates the index to point at the provided resource, then returns itself. */
+    public SamInputResource index(final File file) {
+        this.index = new FileInputResource(file);
+        return this;
+    }
 
-    public SamInputResource index(final File file) { return new SamInputResource(data(), new FileInputResource(file)); }
+    /** Updates the index to point at the provided resource, then returns itself. */
+    public SamInputResource index(final InputStream inputStream) {
+        this.index = new InputStreamInputResource(inputStream);
+        return this;
+    }
 
-    public SamInputResource index(final InputStream inputStream) { return new SamInputResource(data(), new InputStreamInputResource(inputStream)); }
+    /** Updates the index to point at the provided resource, then returns itself. */
+    public SamInputResource index(final URL url) {
+        this.index = new UrlInputResource(url);
+        return this;
+    }
 
-    public SamInputResource index(final URL url) { return new SamInputResource(data(), new UrlInputResource(url)); }
-
-    public SamInputResource index(final SeekableStream seekableStream) { return new SamInputResource(data(), new SeekableStreamInputResource(seekableStream)); }
+    /** Updates the index to point at the provided resource, then returns itself. */
+    public SamInputResource index(final SeekableStream seekableStream) {
+        this.index = new SeekableStreamInputResource(seekableStream);
+        return this;
+    }
 
 }
 

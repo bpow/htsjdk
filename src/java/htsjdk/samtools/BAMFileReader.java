@@ -121,7 +121,7 @@ class BAMFileReader extends SAMFileReader.ReaderImplementation {
                   final ValidationStringency validationStringency,
                   final SAMRecordFactory factory)
         throws IOException {
-        this(new BlockCompressedInputStream(file), indexFile!=null ? indexFile : findIndexFile(file), eagerDecode, file.getAbsolutePath(), validationStringency, factory);
+        this(new BlockCompressedInputStream(file), indexFile!=null ? indexFile : SamFiles.findIndex(file), eagerDecode, file.getAbsolutePath(), validationStringency, factory);
         if (mIndexFile != null && mIndexFile.lastModified() < file.lastModified()) {
             System.err.println("WARNING: BAM index file " + mIndexFile.getAbsolutePath() +
                     " is older than BAM " + file.getAbsolutePath());
@@ -742,36 +742,6 @@ class BAMFileReader extends SAMFileReader.ReaderImplementation {
         // Add some preprocessing filters for edge-case reads that don't fit into this
         // query type.
         return new BAMQueryFilteringIterator(iterator, new BAMQueryMultipleIntervalsIteratorFilter(intervals, contained));
-    }
-
-
-
-
-    /**
-     * Look for BAM index file according to standard naming convention.
-     *
-     * @param dataFile BAM file name.
-     * @return Index file name, or null if not found.
-     */
-    private static File findIndexFile(final File dataFile) {
-        // If input is foo.bam, look for foo.bai
-        File indexFile;
-        final String fileName = dataFile.getName();
-        if (fileName.endsWith(BamFileIoUtils.BAM_FILE_EXTENSION)) {
-            final String bai = fileName.substring(0, fileName.length() - BamFileIoUtils.BAM_FILE_EXTENSION.length()) + BAMIndex.BAMIndexSuffix;
-            indexFile = new File(dataFile.getParent(), bai);
-            if (indexFile.exists()) {
-                return indexFile;
-            }
-        }
-
-        // If foo.bai doesn't exist look for foo.bam.bai
-        indexFile = new File(dataFile.getParent(), dataFile.getName() + BAMIndex.BAMIndexSuffix);
-        if (indexFile.exists()) {
-            return indexFile;
-        } else {
-            return null;
-        }
     }
 
     /**

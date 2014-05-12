@@ -7,11 +7,11 @@ import java.text.MessageFormat;
 
 /**
  * Describes functionality for objects that produce {@link SAMRecord}s and associated information.
- * 
+ *
  * @author mccowan
  */
 public interface SamReader extends Iterable<SAMRecord>, Closeable {
-    
+
     /** Describes a type of SAM file. */
     public abstract class Type {
         /** A string representation of this type. */
@@ -20,9 +20,9 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
         /** The recommended file extension for SAMs of this type, without a period. */
         abstract String fileExtension();
 
-        /** The recommended file extension for SAM indicies of this type, without a period, or null if this type is not associated with indicies. */
+        /** The recommended file extension for SAM indexes of this type, without a period, or null if this type is not associated with indexes. */
         abstract String indexExtension();
-        
+
         static class TypeImpl extends Type {
             final String name, fileExtension, indexExtension;
 
@@ -52,11 +52,11 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
                 return String.format("TypeImpl{name='%s', fileExtension='%s', indexExtension='%s'}", name, fileExtension, indexExtension);
             }
         }
-        
+
         public static Type BAM_TYPE = new TypeImpl("BAM", "bam", "bai");
         public static Type SAM_TYPE = new TypeImpl("SAM", "sam", null);
     }
-    
+
     /**
      * Facet for index-related operations.
      */
@@ -81,7 +81,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
          * index is available.
          *
          * @return An index with a browseable interface, if possible.
-         * @throws htsjdk.samtools.SAMException if no such index is available.
+         * @throws SAMException if no such index is available.
          */
         public BrowseableBAMIndex getBrowseableIndex();
 
@@ -116,10 +116,11 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
 
     /**
      * Exposes the {@link SamReader.Indexing} facet of this {@link SamReader}.
+     *
      * @throws java.lang.UnsupportedOperationException If {@link #hasIndex()} returns false.
      */
     public Indexing indexing();
-    
+
     /**
      * Iterate through file in order.  For a SAMFileReader constructed from an InputStream, and for any SAM file,
      * a 2nd iteration starts where the 1st one left off.  For a BAM constructed from a SeekableStream or File, each new iteration
@@ -299,12 +300,12 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
 
 
     /**
-     * The minimal subset of functionality to implement to conform with the requirements of 
+     * The minimal subset of functionality to implement to conform with the requirements of
      * {@link SamReader.PrimitiveSamReaderToSamReaderAdapter}.
      */
     public interface PrimitiveSamReader {
         Type type();
-        
+
         boolean hasIndex();
 
         BAMIndex getIndex();
@@ -339,7 +340,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
         PrimitiveSamReader underlyingReader() {
             return p;
         }
-        
+
         @Override
         public SAMRecordIterator queryOverlapping(final String sequence, final int start, final int end) {
             return query(sequence, start, end, false);

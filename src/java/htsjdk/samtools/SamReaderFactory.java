@@ -96,7 +96,7 @@ public abstract class SamReaderFactory {
 
         @Override
         public SamReader open(final File file) {
-            return open(SamInputResource.of(file));
+            return open(SamInputResource.of(file).index(SamFiles.findIndex(file)));
         }
 
 
@@ -150,8 +150,8 @@ public abstract class SamReaderFactory {
                             bufferedIndexStream = null;
                         }
                         primitiveSamReader = new BAMFileReader(
-                                data.asUnbufferedSeekableStream(), // This is buffered internally
-                                bufferedIndexStream, // But this needs to be buffered externally
+                                IOUtil.maybeBufferedSeekableStream(data.asUnbufferedSeekableStream()),
+                                bufferedIndexStream,
                                 false,
                                 validationStringency,
                                 this.samRecordFactory
@@ -216,12 +216,12 @@ public abstract class SamReaderFactory {
          */
         INCLUDE_SOURCE_IN_RECORDS {
             @Override
-            void applyTo(final SAMTextReader underlyingReader, final SamReader reader) {
+            void applyTo(final BAMFileReader underlyingReader, final SamReader reader) {
                 underlyingReader.enableFileSource(reader, true);
             }
 
             @Override
-            void applyTo(final BAMFileReader underlyingReader, final SamReader reader) {
+            void applyTo(final SAMTextReader underlyingReader, final SamReader reader) {
                 underlyingReader.enableFileSource(reader, true);
             }
         },
@@ -233,7 +233,7 @@ public abstract class SamReaderFactory {
          * @see SamReader#indexing()
          * @see htsjdk.samtools.SamReader.Indexing#getIndex()
          */
-        CACHE_FILE_BASED_INDICIES {
+        CACHE_FILE_BASED_INDEXES {
             @Override
             void applyTo(final BAMFileReader underlyingReader, final SamReader reader) {
                 underlyingReader.enableIndexCaching(true);
@@ -266,7 +266,7 @@ public abstract class SamReaderFactory {
 
         /**
          * Eagerly decode {@link htsjdk.samtools.SamReader}'s {@link htsjdk.samtools.SAMRecord}s, which can reduce memory footprint if many
-         * fields are being read per record, or if fields are going to be updated.  TODO: Does this make any sense?
+         * fields are being read per record, or if fields are going to be updated.
          */
         EAGERLY_DECODE {
             @Override
