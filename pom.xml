@@ -11,7 +11,7 @@
 
     <groupId>org.broadinstitute</groupId>
     <artifactId>htsjdk</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.120-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>HTS JDK</name>
@@ -50,26 +50,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.8.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.bcel</groupId>
-            <artifactId>bcel</artifactId>
-            <version>5.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.java.contract</groupId>
-            <artifactId>cofoja</artifactId>
-            <!-- must be installed to local repo manually from command line like so:
-             mvn install:install-file -Dfile=lib/cofoja/cofoja-1.0-r139.jar -DgroupId=com.google.java.contract -DartifactId=cofoja -Dversion=1.0-r139 -Dpackaging=jar -->
-            <version>1.0-r139</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-jexl</artifactId>
             <version>2.1.1</version>
@@ -92,7 +72,7 @@
             <artifactId>testng</artifactId>
             <!-- was 5.5; this was failing to compile with maven-->
             <version>6.8.8</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -134,9 +114,6 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
-                    <!-- not sure if this plays nice with cofoja but the build fails without it,
-                     complaining about cofoja "error in contract"-->
-                    <compilerArgument>-proc:none</compilerArgument>
                     <debug>true</debug>
                     <optimize>false</optimize>
                 </configuration>
